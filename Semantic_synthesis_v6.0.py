@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-import vgg19
+import vgg16
 import utils
 import os
 from tqdm import tqdm 
@@ -76,10 +76,10 @@ def residual_block(inputs_layer, nb_blocks, out_filters, strides):
 def VGG16_Synthesis_Network(input_img, input_Semantic):
 	#block_1
 	# img encoder
-	vgg_1 = vgg19.Vgg19()
+	vgg_1 = vgg16.Vgg16()
 	vgg_1.build(input_img)
 	img_layer_1 = tf.contrib.layers.flatten(vgg_1.pool5)
-	img_layer_1 = tf.contrib.layers.fully_connected(img_layer_1, 512)
+	img_layer_1 = tf.contrib.layers.fully_connected(img_layer_1, 1024)
 
 	# Semantic encoder
 	# Semantic_layer_1 = tf.contrib.layers.fully_connected(input_Semantic, 512)
@@ -97,38 +97,69 @@ def VGG16_Synthesis_Network(input_img, input_Semantic):
 	# output_5 = tf.layers.conv2d_transpose(inputs = output_4, filters = 64, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
 	# output_6 = tf.layers.conv2d_transpose(inputs = output_5, filters = 32, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
 	# output_7 = tf.layers.conv2d_transpose(inputs = output_6, filters = 3, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_1 = residual_block(inputs_layer = img_layer_1, nb_blocks = 1, out_filters = 256, strides = 2)
-	Semantic_layer_1_1 = tf.contrib.layers.fully_connected(input_Semantic, 512)
+	output_1_1 = residual_block(inputs_layer = img_layer_1, nb_blocks = 1, out_filters = 512, strides = 2)
+	Semantic_layer_1_1 = tf.contrib.layers.fully_connected(input_Semantic, 1024)
 	Semantic_layer_1_1 = tf.expand_dims(Semantic_layer_1_1,1)
 	Semantic_layer_1_1 = tf.expand_dims(Semantic_layer_1_1,1)
-	Semantic_layer_1_1 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_1, filters = 256, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	Semantic_layer_1_1 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_1, filters = 512, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
 	output_1_1 = tf.concat([output_1_1, Semantic_layer_1_1], -1)
 	#output_1_1 = tf.layers.conv2d(inputs = output_1_1, filters = 512, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_2 = residual_block(inputs_layer = output_1_1, nb_blocks = 1, out_filters = 256, strides = 2)
-	Semantic_layer_1_2 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_1, filters = 128, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_2 = residual_block(inputs_layer = output_1_1, nb_blocks = 1, out_filters = 512, strides = 1)
+	Semantic_layer_1_2 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_1, filters = 256, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
 	output_1_2 = tf.concat([output_1_2, Semantic_layer_1_2], -1)
 	#output_1_2 = tf.layers.conv2d(inputs = output_1_2, filters = 256, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_3 = residual_block(inputs_layer = output_1_2, nb_blocks = 1, out_filters = 128, strides = 2)
-	Semantic_layer_1_3 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_2, filters = 128, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_3= tf.concat([output_1_3, Semantic_layer_1_3], -1)
+	output_1_3 = residual_block(inputs_layer = output_1_2, nb_blocks = 1, out_filters = 256, strides = 2)
+	Semantic_layer_1_3 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_2, filters = 256, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_3 = tf.concat([output_1_3, Semantic_layer_1_3], -1)
 	#output_1_3 = tf.layers.conv2d(inputs = output_1_3, filters = 256, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_4 = residual_block(inputs_layer = output_1_3, nb_blocks = 1, out_filters = 128, strides = 2)
-	Semantic_layer_1_4 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_3, filters = 64, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_4= tf.concat([output_1_4, Semantic_layer_1_4], -1)
+	output_1_4 = residual_block(inputs_layer = output_1_3, nb_blocks = 1, out_filters = 256, strides = 1)
+	Semantic_layer_1_4 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_3, filters = 128, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_4 = tf.concat([output_1_4, Semantic_layer_1_4], -1)
 	#output_1_4 = tf.layers.conv2d(inputs = output_1_4, filters = 128, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_5 = residual_block(inputs_layer = output_1_4, nb_blocks = 1, out_filters = 64, strides = 2)
-	Semantic_layer_1_5 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_4, filters = 32, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_5= tf.concat([output_1_5, Semantic_layer_1_5], -1)
+	output_1_5 = residual_block(inputs_layer = output_1_4, nb_blocks = 1, out_filters = 128, strides = 2)
+	Semantic_layer_1_5 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_4, filters = 128, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_5 = tf.concat([output_1_5, Semantic_layer_1_5], -1)
 	#output_1_5 = tf.layers.conv2d(inputs = output_1_5, filters = 64, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_6 = residual_block(inputs_layer = output_1_5, nb_blocks = 1, out_filters = 32, strides = 2)
-	Semantic_layer_1_6 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_5, filters = 16, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_6= tf.concat([output_1_6, Semantic_layer_1_6], -1)
+	output_1_6 = residual_block(inputs_layer = output_1_5, nb_blocks = 1, out_filters = 128, strides = 1)
+	Semantic_layer_1_6 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_5, filters = 64, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_6 = tf.concat([output_1_6, Semantic_layer_1_6], -1)
 	#output_1_6 = tf.layers.conv2d(inputs = output_1_6, filters = 32, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
-	output_1_7 = residual_block(inputs_layer = output_1_6, nb_blocks = 1, out_filters = 3, strides = 2)
+	output_1_7 = residual_block(inputs_layer = output_1_6, nb_blocks = 1, out_filters = 64, strides = 2)
+	Semantic_layer_1_7 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_6, filters = 64, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_7 = tf.concat([output_1_7, Semantic_layer_1_7], -1)
 	#output_1_7 = tf.layers.conv2d(inputs = output_1_7, filters = 3, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_8 = residual_block(inputs_layer = output_1_7, nb_blocks = 1, out_filters = 64, strides = 1)
+	Semantic_layer_1_8 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_7, filters = 32, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_8 = tf.concat([output_1_8, Semantic_layer_1_8], -1)
+
+	output_1_9 = residual_block(inputs_layer = output_1_8, nb_blocks = 1, out_filters = 32, strides = 2)
+	Semantic_layer_1_9 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_8, filters = 32, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_9 = tf.concat([output_1_9, Semantic_layer_1_9], -1)
+
+	output_1_10 = residual_block(inputs_layer = output_1_9, nb_blocks = 1, out_filters = 32, strides = 1)
+	Semantic_layer_1_10 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_9, filters = 16, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_10 = tf.concat([output_1_10, Semantic_layer_1_10], -1)
+
+	output_1_11 = residual_block(inputs_layer = output_1_10, nb_blocks = 1, out_filters = 16, strides = 2)
+	Semantic_layer_1_11 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_10, filters = 16, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_11 = tf.concat([output_1_11, Semantic_layer_1_11], -1)
+
+	output_1_12 = residual_block(inputs_layer = output_1_11, nb_blocks = 1, out_filters = 16, strides = 1)
+	Semantic_layer_1_12 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_11, filters = 8, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_12 = tf.concat([output_1_12, Semantic_layer_1_12], -1)
+
+	output_1_13 = residual_block(inputs_layer = output_1_12, nb_blocks = 1, out_filters = 8, strides = 2)
+	Semantic_layer_1_13 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_12, filters = 8, kernel_size = 3, strides = (2,2), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_13 = tf.concat([output_1_13, Semantic_layer_1_13], -1)
+
+	output_1_14 = residual_block(inputs_layer = output_1_13, nb_blocks = 1, out_filters = 8, strides = 1)
+	Semantic_layer_1_14 = tf.layers.conv2d_transpose(inputs = Semantic_layer_1_13, filters = 4, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
+	output_1_14 = tf.concat([output_1_14, Semantic_layer_1_14], -1)
+
+	output_1_15 = tf.layers.conv2d_transpose(inputs = output_1_14, filters = 3, kernel_size = 3, strides = (1,1), padding='same', data_format='channels_last', activation = tf.nn.relu)
 
 	# output
-	output_1_8 = tf.image.resize_images(output_1_7, [224,224])
+	output_1_16 = tf.image.resize_images(output_1_15, [224,224])
 
 	#block_2
 	# img encoder
@@ -156,7 +187,7 @@ def VGG16_Synthesis_Network(input_img, input_Semantic):
 	# output_2_7 = residual_block(inputs_layer = output_2_6, nb_blocks = 1, out_filters = 3, strides = 2)
 	# # output
 	# output_2_8 = tf.image.resize_images(output_2_7, [224,224])
-	return output_1_8
+	return output_1_16
 
 # placeholder of networks
 input_img = tf.placeholder(tf.float32, [None, 224, 224, 3])
@@ -172,7 +203,7 @@ with tf.name_scope('cost'):
 	tf.summary.scalar('loss',loss)
 
 # optimizer of networks
-train_step = tf.train.AdamOptimizer(0.001).minimize(loss)
+train_step = tf.train.AdamOptimizer(0.01).minimize(loss)
 
 # path of checkpoint
 saver = tf.train.Saver()
